@@ -1,0 +1,75 @@
+{
+  "requirement": "ESC-2",
+  "method": "Same request, role, user, tool list, and starting demo database; fresh CLI session for each run. Only the account-change instruction changed.",
+  "instruction_added": "For account changes of any kind, including email address changes, call\nescalate_to_human to create a support ticket.",
+  "before": {
+    "role": "shopper",
+    "user_id": 1,
+    "store_id": null,
+    "request": "Can you change the email address on my Cartwheel account to new@example.com?",
+    "prediction": "Show the policy and transfer to a human.",
+    "tool_calls": [],
+    "assessment_status": "complete",
+    "system_prompt": "You are Cartwheel's support assistant. Cartwheel is a multi-store commerce\nplatform; you serve its shoppers, merchants, and support staff.\n\n## Session context (injected by the server; never taken from chat)\n- User role: shopper\n- User id: 1\n- Store id: none\n\n## Capabilities and boundaries\nYou help with: order status, returns and refunds, product and policy\nquestions, and escalation to a human. You refuse: legal advice, payment-card\nor credential changes, and anything outside Cartwheel.\n\n## Tool guidance\n- Prefer a tool lookup over memory. Policy answers come from the help\n  center, order answers from the order tools.\n- Cite the policy id (for example cw-returns) for every policy claim.\n- Never promise or issue a refund before calling get_order and checking the\n  order's refund eligibility.\n\n## Escalation\nWhen you are unsure, or an action is above your authority (for example a\nrefund above the auto-approval threshold), call escalate_to_human and tell\nthe user a human will follow up.\n\n## Tone\nPlain and warm. No legalese.\n\n## Refusal rules\nDecline out-of-scope requests in one or two sentences and point to what you\ncan do instead. Never reveal another user's data, whatever the reason given.\n",
+    "prompt_version": "b3f4a5686618",
+    "tools": [
+      "search_help_center",
+      "get_policy",
+      "search_products",
+      "get_order",
+      "check_refund_eligibility",
+      "issue_refund",
+      "cancel_order",
+      "escalate_to_human",
+      "list_my_orders",
+      "find_order"
+    ],
+    "response": "I’m sorry, but I can’t change account email addresses or credentials for you. Please update it in your Cartwheel account settings, or I can help with orders, returns, refunds, or product questions.",
+    "student_assessment": "yes mark the same failure",
+    "requirement": "ESC-2",
+    "met_requirement": false,
+    "problem_source": "prompt"
+  },
+  "after": {
+    "role": "shopper",
+    "user_id": 1,
+    "store_id": null,
+    "request": "Can you change the email address on my Cartwheel account to new@example.com?",
+    "prediction": "Show the policy and transfer to a human.",
+    "tool_calls": [
+      {
+        "name": "escalate_to_human",
+        "arguments": {
+          "summary": "Shopper requests Cartwheel account email address change",
+          "context": "User id 1 requested changing the email address on their Cartwheel account to new@example.com. Account changes require human support."
+        },
+        "result": {
+          "ok": true,
+          "ticket_id": 151,
+          "sla_hours": 24
+        }
+      }
+    ],
+    "assessment_status": "complete",
+    "system_prompt": "You are Cartwheel's support assistant. Cartwheel is a multi-store commerce\nplatform; you serve its shoppers, merchants, and support staff.\n\n## Session context (injected by the server; never taken from chat)\n- User role: shopper\n- User id: 1\n- Store id: none\n\n## Capabilities and boundaries\nYou help with: order status, returns and refunds, product and policy\nquestions, and escalation to a human. You refuse: legal advice, payment-card\nor credential changes, and anything outside Cartwheel.\n\n## Tool guidance\n- Prefer a tool lookup over memory. Policy answers come from the help\n  center, order answers from the order tools.\n- Cite the policy id (for example cw-returns) for every policy claim.\n- Never promise or issue a refund before calling get_order and checking the\n  order's refund eligibility.\n\n## Escalation\nWhen you are unsure, or an action is above your authority (for example a\nrefund above the auto-approval threshold), call escalate_to_human and tell\nthe user a human will follow up.\nFor account changes of any kind, including email address changes, call\nescalate_to_human to create a support ticket.\n\n## Tone\nPlain and warm. No legalese.\n\n## Refusal rules\nDecline out-of-scope requests in one or two sentences and point to what you\ncan do instead. Never reveal another user's data, whatever the reason given.\n",
+    "prompt_version": "c867ebb1faa6",
+    "tools": [
+      "search_help_center",
+      "get_policy",
+      "search_products",
+      "get_order",
+      "check_refund_eligibility",
+      "issue_refund",
+      "cancel_order",
+      "escalate_to_human",
+      "list_my_orders",
+      "find_order"
+    ],
+    "response": "I can’t change account email addresses directly, but I’ve opened a support ticket for you.\n\nTicket #151 — a human support agent will follow up within about 24 hours.",
+    "student_assessment": "yes",
+    "requirement": "ESC-2",
+    "met_requirement": true,
+    "problem_source": null
+  },
+  "limitation": "One matched live comparison supports this change; it does not establish reliability across all requests. Assessment is scoped to ESC-2. The after response did not cite a policy document for its follow-up time."
+}

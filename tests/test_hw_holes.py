@@ -154,6 +154,39 @@ def test_hw1_find_order(world: dict) -> None:
     assert empty == {"ok": True, "orders": []}
 
 
+def test_hw1_find_order_respects_role_scope(world: dict) -> None:
+    """A product-name match must not bypass the caller's order scope."""
+    conn = sqlite3.connect(world["db"])
+    try:
+        product_name = conn.execute(
+            "SELECT p.title FROM orders o JOIN products p ON o.product_id = p.id "
+            "WHERE o.id = 4127"
+        ).fetchone()[0]
+    finally:
+        conn.close()
+
+    shopper_results = tools.find_order(SHOPPER_2, product_name)["orders"]
+    merchant_results = tools.find_order(MERCHANT_STORE_1, product_name)["orders"]
+    support_results = tools.find_order(SUPPORT, product_name)["orders"]
+
+    conn = sqlite3.connect(world["db"])
+    try:
+        shopper_ids = [row[0] for row in conn.execute("SELECT id FROM orders WHERE user_id = 2")]
+        merchant_ids = [row[0] for row in conn.execute("SELECT id FROM orders WHERE store_id = 1")]
+    finally:
+        conn.close()
+
+    assert all(o["order_id"] in shopper_ids for o in shopper_results)
+    assert all(o["order_id"] in merchant_ids for o in merchant_results)
+    support_ids = [
+        o["order_id"] for o in support_results
+    ]
+    assert all(isinstance(order_id, int) for order_id in support_ids)
+    assert 4127 not in [o["order_id"] for o in shopper_results]
+    assert 4127 in [o["order_id"] for o in merchant_results]
+    assert 4127 in support_ids
+
+
 # ---------------------------------------------------------------------------
 # Homework 2: instrumentation and authenticated endpoint
 # ---------------------------------------------------------------------------

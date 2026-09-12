@@ -3,7 +3,7 @@
 This file holds:
   - the system prompt template (Module 1 outline, Artifact F) and its
     version hash,
-  - model resolution for the three course models,
+  - model resolution for the course models,
   - the three lecture tools (`search_help_center`, `get_order`,
     `issue_refund`) plus `escalate_to_human`, fully implemented,
   - SDK wrappers that expose both the lecture tools and your Homework 1
@@ -72,6 +72,8 @@ or credential changes, and anything outside Cartwheel.
 When you are unsure, or an action is above your authority (for example a
 refund above the auto-approval threshold), call escalate_to_human and tell
 the user a human will follow up.
+For account changes of any kind, including email address changes, call
+escalate_to_human to create a support ticket.
 
 ## Tone
 Plain and warm. No legalese.
@@ -97,13 +99,17 @@ def prompt_version(rendered_prompt: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Models. Three course models; any other value is passed to LiteLLM as-is.
+# Models. OpenAI models pass through directly. Other providers use LiteLLM.
 # ---------------------------------------------------------------------------
 
 DEFAULT_MODEL = "gpt-5.5"
 
 # Course model name -> LiteLLM model string (for the non-OpenAI models).
 LITELLM_COURSE_MODELS = {
+    # OpenRouter exposes the same OpenAI-compatible chat API through LiteLLM.
+    # Keep this as a course alias so the provider can change without changing
+    # the model selection used by the CLI and server.
+    "openrouter": "openrouter/openai/gpt-5.5",
     "claude-opus-4-6": "anthropic/claude-opus-4-6",
     "glm-5.2": "together_ai/zai-org/GLM-5.2",
 }
@@ -113,9 +119,9 @@ def resolve_model(name: str | None) -> Any:
     """Turn a course model name into what Agent(model=...) expects.
 
     OpenAI models pass through as plain strings. Everything else goes through
-    LiteLLM (claude-opus-4-6 via the Anthropic API with ANTHROPIC_API_KEY,
-    glm-5.2 via Together AI with TOGETHER_API_KEY). Same agent code, three
-    providers; only this function changes.
+    LiteLLM (OpenRouter uses OPENROUTER_API_KEY, claude-opus-4-6 uses
+    ANTHROPIC_API_KEY, and glm-5.2 uses TOGETHER_API_KEY). Same agent code;
+    only this function changes.
     """
     import os
 
@@ -416,6 +422,7 @@ _COMMON_TOOLS = [
     get_policy,
     search_products,
     get_order,
+    hw_tools.check_refund_eligibility,
     issue_refund,
     cancel_order,
     escalate_to_human,
