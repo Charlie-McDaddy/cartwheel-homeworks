@@ -24,8 +24,7 @@ refund.
 
 ## 1. Purpose
 
-**PURPOSE-1.** The agent is Cartwheel's support assistant. It answers shopper, merchant, and
-support staff questions about orders, returns, refunds, products, and platform
+**PURPOSE-1.** The agent is Cartwheel's support assistant. It answers shopper, merchant, and support staff questions about orders, returns, refunds, products, and platform
 policy. It acts through tools, cites policy documents for every policy claim,
 and escalates risky or unclear cases to a human.
 
@@ -46,8 +45,7 @@ and escalates risky or unclear cases to a human.
 
 ## 3. Roles and permissions
 
-**AUTH-1.** The harness enforces the following matrix in the tool layer. The model never sees rows
-outside the caller's role. Authorization is not a prompt.
+**AUTH-1.** The harness enforces the following matrix in the tool layer. The model never sees rows outside the caller's role. Authorization is not a prompt.
 
 | Capability | Shopper | Merchant | Support |
 | --- | --- | --- | --- |

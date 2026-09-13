@@ -1,0 +1,37 @@
+{
+  "role": "support",
+  "user_id": 9501,
+  "store_id": null,
+  "request": "Show me order 4127.",
+  "prediction": "The agent should display the order",
+  "tool_calls": [
+    {
+      "name": "get_order",
+      "arguments": {
+        "order_id": 4127
+      },
+      "result": {
+        "ok": true,
+        "order": {
+          "order_id": 4127,
+          "store_id": 1,
+          "product_id": 1,
+          "quantity": 1,
+          "total_usd": 84.0,
+          "status": "delivered",
+          "ordered_at": "2026-06-14",
+          "shipped_at": "2026-06-16",
+          "delivered_at": "2026-06-19",
+          "refund_eligible": true,
+          "store_name": "Blue Heron Ceramics"
+        }
+      }
+    }
+  ],
+  "assessment_status": "complete",
+  "response": "Order 4127:\n\n- Store: Blue Heron Ceramics\n- Product ID: 1\n- Quantity: 1\n- Total: $84.00\n- Status: Delivered\n- Ordered: 2026-06-14\n- Shipped: 2026-06-16\n- Delivered: 2026-06-19\n- Refund eligible: Yes",
+  "student_assessment": "yes",
+  "met_requirement": true,
+  "problem_source": null,
+  "requirement": "AUTH-1"
+}

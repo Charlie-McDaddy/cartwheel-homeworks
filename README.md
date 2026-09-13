@@ -37,7 +37,7 @@ uv run pytest
 
 If `.env` does not exist, copy `.env.example` to `.env`. Add a key for the model provider you will use, and preserve any existing settings. The tests and seed command do not require a model key.
 
-The default model is `gpt-5.5` with OpenAI. You can select `claude-opus-4-6` with Anthropic or `glm-5.2` with Together AI using `CARTWHEEL_MODEL` in `.env`. The CLI's `--model` flag overrides the default. You need a key for only one provider.
+The default model is `gpt-5.5` with OpenAI. You can use the `openrouter` alias with OpenRouter (which routes to OpenAI GPT-5.5), `claude-opus-4-6` with Anthropic, or `glm-5.2` with Together AI by setting `CARTWHEEL_MODEL` in `.env`. The CLI's `--model` flag overrides the default. You need a key for only one provider. For OpenRouter, set `OPENROUTER_API_KEY` and `CARTWHEEL_MODEL=openrouter`.
 
 The starter contains unfinished homework functions. Tests for unfinished functions report expected failures until you implement them. Follow [Homework 1](homework/module-1/hw1.md) to complete the five support tools, then use the chat interface:
 

@@ -181,7 +181,7 @@ def main() -> None:
     parser.add_argument(
         "--model",
         default=None,
-        help="gpt-5.5 | claude-opus-4-6 | glm-5.2 (default: $CARTWHEEL_MODEL or gpt-5.5)",
+        help="gpt-5.5 | openrouter | claude-opus-4-6 | glm-5.2 (default: $CARTWHEEL_MODEL or gpt-5.5)",
     )
     tracing_options = parser.add_mutually_exclusive_group()
     tracing_options.add_argument(
