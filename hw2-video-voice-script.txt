@@ -1,0 +1,41 @@
+REHEARSAL VOICE SCRIPT — HOMEWORK 2
+
+Not yet cleared for submission. First resolve the trace-ID/link corrections and Part F comparison requirement in hw2-ai-video-instructions.md. Section labels and these notes are not spoken. The student must review the words and record the required continuous demonstration.
+
+SCENE 1 — PURPOSE
+
+This is my Homework Two demonstration of Cartwheel. I added a checked session and a trace for each message. A trace records the whole request. A span records one step inside it. I will show an allowed lookup, a denied lookup, and how I track the prompt version.
+
+SCENE 2 — IDENTITY AND TEST
+
+First, I will run an access test. It checks that a pass issued for one conversation cannot open another conversation. The test passed. This test runs offline and makes no model call.
+
+The server checks the requested user and role against the database. It saves that identity with the session and issues a signed pass. Later messages use that saved identity. A claim inside the chat cannot change the user's role. This is a local course setup, not a complete production sign-in system.
+
+SCENE 3 — ALLOWED REQUEST
+
+Here is the request to show order four one two seven. The root span identifies shopper user one and records the prompt version. The workflow and agent entries group the steps below them.
+
+The first model call chooses the get order tool. The tool receives the order number and returns the order details. Access was allowed. The final model call turns those details into a reply: the order was delivered and its total was eighty-four dollars.
+
+The gen A I fields describe the model and tool work. The cartwheel fields describe the user and access decision. Token counts measure pieces of text read and written by the model. They are now visible for both model calls.
+
+SCENE 4 — DENIED REQUEST
+
+Now I will follow the same request from merchant user nine thousand and two. The root span records the merchant identity. The tool span also records store two.
+
+The get order tool denies access and explains why: this merchant may not view order four one two seven. It returns no order details. The final reply explains the limit and offers help with the merchant's own store.
+
+The request completed successfully because the agent handled the denial. Completed does not mean that access was granted.
+
+SCENE 5 — PROMPT COMPARISON
+
+These are the two prompt versions from the wording check. Both requests asked about a refund for order three nine eight zero, using shopper user one and the same model. Each began in a new session.
+
+The original prompt has the first code shown here. A temporary tone change produced the second code. This shows that changing the prompt changes its version code. It does not show that either prompt gives better answers. I restored the original wording afterward.
+
+SCENE 6 — COUNT AND RECORDS
+
+Finally, I will count the spans again from the saved shopper trace export. The command reports six: the root, the workflow, the agent, two model calls, and one tool call.
+
+The trace record file contains the two examples I have shown, with their actual trace IDs, links, users, tool order, and completion status. This evidence lets someone follow each request from the verified identity through the tool result to the final reply.

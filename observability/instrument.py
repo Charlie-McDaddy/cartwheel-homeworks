@@ -12,6 +12,7 @@ Artifact G).
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from pathlib import Path
@@ -19,7 +20,12 @@ from typing import TYPE_CHECKING, Any
 
 from agents.tracing import set_trace_processors
 from agents.tracing.processors import default_processor
+from agents.tracing.processor_interface import TracingProcessor
 from opentelemetry import trace
+from opentelemetry.semconv._incubating.attributes import (
+    gen_ai_attributes as GenAIAttributes,
+)
+from opentelemetry.semconv_ai import SpanAttributes
 
 if TYPE_CHECKING:
     from agent.auth import AuthContext
@@ -29,6 +35,62 @@ log = logging.getLogger("cartwheel.instrument")
 
 _genai_instrumented = False
 _openai_tracing_enabled = False
+
+
+class _GenerationSpanDataProcessor(TracingProcessor):
+    """Fill the fields OpenLLMetry 0.62.3 misses for SDK generation spans."""
+
+    def on_trace_start(self, _trace: Any) -> None:
+        pass
+
+    def on_trace_end(self, _trace: Any) -> None:
+        pass
+
+    def on_span_start(self, _span: Any) -> None:
+        pass
+
+    def on_span_end(self, span: Any) -> None:
+        from agents.tracing.span_data import GenerationSpanData
+
+        if not isinstance(getattr(span, "span_data", None), GenerationSpanData):
+            return
+        otel_span = trace.get_current_span()
+        if not otel_span.is_recording():
+            return
+
+        span_data = span.span_data
+        usage = span_data.usage or {}
+        input_tokens = usage.get("input_tokens")
+        output_tokens = usage.get("output_tokens")
+        total_tokens = usage.get("total_tokens")
+        if input_tokens is not None:
+            otel_span.set_attribute(GenAIAttributes.GEN_AI_USAGE_INPUT_TOKENS, input_tokens)
+        if output_tokens is not None:
+            otel_span.set_attribute(GenAIAttributes.GEN_AI_USAGE_OUTPUT_TOKENS, output_tokens)
+        if total_tokens is None and input_tokens is not None and output_tokens is not None:
+            total_tokens = input_tokens + output_tokens
+        if total_tokens is not None:
+            otel_span.set_attribute(SpanAttributes.GEN_AI_USAGE_TOTAL_TOKENS, total_tokens)
+
+        if os.environ.get("TRACELOOP_TRACE_CONTENT", "false").lower() != "true":
+            return
+        from opentelemetry.instrumentation.openai_agents._hooks import _convert_chat_message
+
+        messages = []
+        for message in span_data.output or []:
+            role, parts = _convert_chat_message(dict(message))
+            if role and parts:
+                messages.append({"role": role, "parts": parts})
+        if messages:
+            otel_span.set_attribute(
+                GenAIAttributes.GEN_AI_OUTPUT_MESSAGES, json.dumps(messages)
+            )
+
+    def shutdown(self) -> None:
+        pass
+
+    def force_flush(self) -> None:
+        pass
 
 
 def configure_model_tracing(*, openai_model: bool) -> None:
@@ -60,8 +122,11 @@ def instrument_genai(tracer_provider: Any) -> None:
     from opentelemetry.instrumentation.openai_agents import OpenAIAgentsInstrumentor
 
     os.environ.setdefault("TRACELOOP_TRACE_CONTENT", "false")
+    # Install our compatibility processor first. The OTel processor then owns
+    # span lifecycle while this processor still has its active OTel context.
+    set_trace_processors([_GenerationSpanDataProcessor()])
     # Export only through Langfuse, not the SDK's separate hosted tracing path.
-    instrumentor = OpenAIAgentsInstrumentor(replace_existing_processors=True)
+    instrumentor = OpenAIAgentsInstrumentor(replace_existing_processors=False)
     instrumentor.instrument(tracer_provider=tracer_provider)
     if not instrumentor.is_instrumented_by_opentelemetry:
         raise RuntimeError("OpenAI Agents tracing instrumentation failed to install")
@@ -122,10 +187,11 @@ def record_tool_result(ctx: "AuthContext", result: dict[str, Any]) -> None:
     span = trace.get_current_span()
     if not span.is_recording():
         return
-    ### YOUR CODE HERE (HW2)
-    raise NotImplementedError(
-        "HW2: add authenticated caller and permission attributes to the tool span"
-    )
+    span.set_attribute("cartwheel.user_role", ctx.role)
+    span.set_attribute("cartwheel.user_id", str(ctx.user_id))
+    if ctx.role == "merchant":
+        span.set_attribute("cartwheel.store_id", str(ctx.store_id))
+    _set_permission_denied_attributes(span, result)
 
 
 def _set_permission_denied_attributes(
@@ -149,5 +215,10 @@ def _set_permission_denied_attributes(
     the smoke report counts them and Module 3 asserts on them. This is the one place in the
     course where you touch instrumentation by hand.
     """
-    ### YOUR CODE HERE (HW2)
-    raise NotImplementedError("HW2: set the cartwheel.permission_denied span attribute")
+    denied = result.get("error") == "permission_denied"
+    span.set_attribute("cartwheel.permission_denied", denied)
+    if denied:
+        span.set_attribute(
+            "cartwheel.permission_denied.reason",
+            str(result.get("reason") or ""),
+        )
